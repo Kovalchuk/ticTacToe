@@ -27,6 +27,7 @@ import android.R.string;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.graphics.Path.FillType;
 import android.view.Menu;
 import android.view.View;
 import android.widget.CheckBox;
@@ -39,29 +40,52 @@ import android.widget.RelativeLayout;
 
 import android.view.Display; 
 import java.io.*; 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 public class MainActivity extends Activity {
-	private EditText edtext;
-	private Button but0;
-	private Button but1;
-	private Button but2;
-	private Button but3;
-	private Button but4;
-	private Button but5;
-	private Button but6;
-	private Button but7; 
-	private Button but8;	
+
+
+	static final int cellFilledPhone = 0;
+	static final int cellFilledUser = 1;
+	static final int cellNotFilled = 2;
+	
+	
+	Button [] arrayButton = new Button[9];	
+	
+	int [] line1 = {0, 1, 2};
+	int [] line2 = {3, 4, 5};
+	
+	
+	// 012
+	// 345
+	// 678
+
+	int [][]arrayLines = {  {0,1,2}, {3,4,5}, {6, 7, 8},
+							{0,3,6}, {1,4,7}, {2, 5, 8},
+							{0,4,8}, {2,4,6}
+						};
+	
+	
+	
 	private CheckBox chBox_O;
 	private CheckBox chBox_X;
 	private LinearLayout container;
 	
 	private TextView text1; 
-	int[] mass ={2, 2, 2, 2, 2, 2, 2, 2, 2}; 
+	int[] mass = {
+					cellNotFilled, cellNotFilled, cellNotFilled, 
+					cellNotFilled, cellNotFilled, cellNotFilled, 
+					cellNotFilled, cellNotFilled, cellNotFilled
+				 };
 	
+	enum ResultGame { UNDEFINED, XWIN, OWIN, DRAW }	
+	ResultGame resultGame = ResultGame.UNDEFINED;
 	
-	enum ResultGame { UNDEFINED, XWIN, OWIN, DRAW }
+	enum sign { X, O }
+	sign mySign = sign.X;
 	
-	ResultGame resultGame = ResultGame.UNDEFINED;  
 
 	
 
@@ -70,33 +94,23 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        
-        but0 = (Button)findViewById(R.id.btnButton1);
-        but1 = (Button)findViewById(R.id.btnButton2);
-        but2 = (Button)findViewById(R.id.btnButton3);
-        but3 = (Button)findViewById(R.id.btnButton4);
-        but4 = (Button)findViewById(R.id.btnButton5);
-        but5 = (Button)findViewById(R.id.btnButton6);
-        but6 = (Button)findViewById(R.id.btnButton7);
-        but7 = (Button)findViewById(R.id.btnButton8);
-        but8 = (Button)findViewById(R.id.btnButton9);   
+        arrayButton[0] = (Button)findViewById(R.id.btnButton1);        
+        arrayButton[1] = (Button)findViewById(R.id.btnButton2);
+        arrayButton[2] = (Button)findViewById(R.id.btnButton3);
+        arrayButton[3] = (Button)findViewById(R.id.btnButton4);
+        arrayButton[4] = (Button)findViewById(R.id.btnButton5);
+        arrayButton[5] = (Button)findViewById(R.id.btnButton6);
+        arrayButton[6] = (Button)findViewById(R.id.btnButton7);
+        arrayButton[7] = (Button)findViewById(R.id.btnButton8);
+        arrayButton[8] = (Button)findViewById(R.id.btnButton9);   
         
         chBox_O = (CheckBox)findViewById(R.id.CheckBox_O);
         chBox_X = (CheckBox)findViewById(R.id.checkBox_X);
      
         text1 = (TextView)findViewById(R.id.textView1);    
         
-    	refresh(null);    	
-  
-//        
-//        finish();  
-        
+    	refresh(null);
 
-        
-
-        
-
-//        
 //        
 //        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
 //        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
@@ -133,96 +147,70 @@ public class MainActivity extends Activity {
         
         
     }
+    private int getNumCellByRules1() {
+    	return getNumCellByRules(cellFilledPhone);
+    }
+    private int getNumCellByRules2() {
+    	return getNumCellByRules(cellFilledUser);
+    }
+    
+    private int getNumCellByRules(int cellFilled) {
+    	
+    	for (int i = 0; i < arrayLines.length; i++) {
+    		
+    		int numCell = checkRules1(arrayLines[i][0], arrayLines[i][1], arrayLines[i][2], cellFilled);
+    		if (numCell < 10)
+    			return numCell;
+    	}    	
+    	
+    	return 10;
+    }
+    
+    private int checkRules1(int a, int b, int c, int cellFilled) {
+    	if (mass[a] == cellNotFilled && mass[b] == mass[c] && mass[c] == cellFilled)
+    		return a;
+    	else if (mass[b] == cellNotFilled && mass[a] == mass[c] && mass[c] == cellFilled)
+    		return b;
+    	else if (mass[c] == cellNotFilled && mass[a] == mass[b] && mass[b] == cellFilled)
+    		return c;
+    	return 10;
+    }
+
+    private void setMySign(sign sig) {
+    	mySign = sig;    	
+    }
+    private String getMySignStr() {
+    	if (mySign == sign.X)
+    		return "X";
+    	else
+    		return "O";    	
+    }
+    private String getPhoneSignStr() {
+    	if (mySign == sign.X)
+    		return "O";
+    	else
+    		return "X";    	
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
-    }
-    
-    public Button getButtonByNumber(int num) {
-    	Button b = new Button(this);
-    	switch (num) 
-    	{
-    	    case 0:
-    	    	b = but0;
-    	        break;
-    	    case 1:
-    	    	b = but1;
-    	        break;
-    	    case 2:
-    	    	b = but2;
-    	        break;
-    	    case 3:
-    	    	b = but3;
-    	        break;
-    	    case 4:
-    	    	b = but4;
-    	        break;
-    	    case 5:
-    	    	b = but5;
-    	        break;
-    	    case 6:
-    	    	b = but6;
-    	        break;
-    	    case 7:
-    	    	b = but7;
-    	        break;
-    	    case 8:
-    	    	b = but8;
-    	        break;
-    	} 	
-    	
-    	return b;
-    }
+    }   
     
     public void myClick(View v){    	
     	chBox_O.setEnabled(false);
     	chBox_X.setEnabled(false);
-
-    	Button butt = (Button) v;
-    	butt.setText("X");
-    	butt.setEnabled(false);    	
+    
     	
-    	switch (v.getId()) 
-    	{
-    	    case R.id.btnButton1:
-    	    	System.out.println("button 0");
-    	    	mass[0] = 1;
-    	        break;
-    	    case R.id.btnButton2:
-    	    	System.out.println("button 1");
-    	    	mass[1] = 1;
-    	        break;
-    	    case R.id.btnButton3:
-    	    	System.out.println("button 2");
-    	    	mass[2] = 1;
-    	        break;
-    	    case R.id.btnButton4:
-    	    	System.out.println("button 3");
-    	    	mass[3] = 1;
-    	        break;
-    	    case R.id.btnButton5:
-    	    	System.out.println("button 4");
-    	    	mass[4] = 1;
-    	        break;
-    	    case R.id.btnButton6:
-    	    	System.out.println("button 5");
-    	    	mass[5] = 1;
-    	        break;
-    	    case R.id.btnButton7:
-    	    	System.out.println("button 6");
-    	    	mass[6] = 1;
-    	        break;
-    	    case R.id.btnButton8:
-    	    	System.out.println("button 7");
-    	    	mass[7] = 1;
-    	        break;
-    	    case R.id.btnButton9:
-    	    	System.out.println("button 8");
-    	    	mass[8] = 1;
-    	        break;
-        }    	
+    	for (int a = 0; a < arrayButton.length; a++) {
+    		if (arrayButton[a].getId() == v.getId()) {
+    			arrayButton[a].setText(getMySignStr());
+    			arrayButton[a].setEnabled(false);    
+    			mass[a] = cellFilledUser;
+    			break;
+    		}
+    	}
 
     	if (checkResult())
     		return;
@@ -231,25 +219,74 @@ public class MainActivity extends Activity {
     	checkResult();    			
     }
     
-    public void clickPhone(){
+    
+    private int getNumCellByRulesZero3() {    	
+    	int [] angels = {0, 2, 6, 8};
+//    	
+//    	List<Integer> list = Arrays.asList(0, 2, 6, 8);
+//    	
+//    	Random r = new Random();
+//    	
+//    	while (!list.isEmpty()) {
+//    		int num = r.nextInt(list.size());
+//    		if (mass[list.get(num)] == cellNotFilled)    		
+//    	}
+    	
+    	
+    	
+    	
+    	
+    	for (int i = 0; i < angels.length; i++) {
+    		if (mass[angels[i]] == cellNotFilled)
+    			return angels[i];
+    	}
+    	return 10;
+    }
+    
+    public void clickPhone() {
+    	int numCell = 10;
+    	
+    	
+    	numCell = getNumCellByRules1();		// First Rule;
+    	if (fixPhoneMove(numCell))
+			return;    	    	
+    	numCell = getNumCellByRules2();		// Second Rule;
+    	if (fixPhoneMove(numCell))
+			return;
+    	
+    	if (0 == 0) {    		
+    		if (mass[4] == cellFilledUser) {    			
+    			numCell = getNumCellByRulesZero3();
+    	    	if (fixPhoneMove(numCell))
+    				return;
+    		}
+    		
+    	}
+    	
     	
     	for (int i = 0; i < 9; i++) {
-    		if (mass[i] == 2) {
-    			mass[i] = 0;
-    			System.out.println(100500);
-    			System.out.println(i);
-    			Button button = getButtonByNumber(i);   		
-    			button.setText("O");
-    			button.setEnabled(false);
+    		if (mass[i] == cellNotFilled) {
+    			fixPhoneMove(i);
     			break;
     		}
     	}    
     }
+    
+    private boolean fixPhoneMove (int numCell) {
+    	if (numCell < 10) {
+			mass[numCell] = cellFilledPhone;
+			arrayButton[numCell].setText(getPhoneSignStr());
+			arrayButton[numCell].setEnabled(false);
+			return true;
+    	}
+    	return false;
+    }
+    
     public boolean checkResult(){   	
     	
     	int result = 2;    	
     	
-    	if (mass[4] != 2) {
+    	if (mass[4] != cellNotFilled) {
 			if (
 					(mass[3] == mass[4] && mass[4] == mass[5]) || 
 					(mass[1] == mass[4] && mass[4] == mass[7]) ||
@@ -259,7 +296,7 @@ public class MainActivity extends Activity {
 				result = mass[4];
     	}
     	
-    	if (mass[0] != 2) {
+    	if (mass[0] != cellNotFilled) {
     		if (
     				(mass[0] == mass[1] && mass[1] == mass[2]) ||
     				(mass[0] == mass[3] && mass[3] == mass[6])
@@ -267,22 +304,13 @@ public class MainActivity extends Activity {
     			result = mass[0];
     	}
     	
-    	if (mass[8] != 2) {
+    	if (mass[8] != cellNotFilled) {
     		if (
     				(mass[2] == mass[5] && mass[5] == mass[8]) ||
     				(mass[6] == mass[7] && mass[7] == mass[8])
     		   )
     			result = mass[8];
     	}
-    	
-//    	boolean draw = true;
-//    	for (int i = 0; i < mass.length; i++)
-//    		if  (mass[i] == 2)
-//    			draw = false;
-    	
-
-    	
-
     	
     	if (result != 2) {    		 
     		gameOver(result);
@@ -291,14 +319,12 @@ public class MainActivity extends Activity {
     	else {
 			boolean cellsAreFilled = true;
 			for (int i = 0; i < mass.length; i++)
-				if (mass[i] == 2) {
+				if (mass[i] == cellNotFilled) {
 					cellsAreFilled = false;
 					break;
-				}
-			
+				}			
 			if (cellsAreFilled)
-				gameOver(3);
-			
+				gameOver(3);			
 		}
     	return false;
     }
@@ -316,24 +342,14 @@ public class MainActivity extends Activity {
     	else
     		str = "Какая-то ошибка";
     	
-
-//        AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);                      
-//        dlgAlert.setMessage("Игра окончена.");
-//        dlgAlert.setTitle(str);              
-//        dlgAlert.setPositiveButton("OK", null);
-//        dlgAlert.setCancelable(true);
-//        dlgAlert.create().show();
-    	
     	text1.setText(str);
 		text1.setVisibility(View.VISIBLE);
 		
     	chBox_O.setEnabled(true);
     	chBox_X.setEnabled(true);
 		
-    	for (int i = 0; i < 9; i++) {
-    		Button button = getButtonByNumber(i);   		
-    		button.setClickable(false);    		
-    	} 		
+    	for (int i = 0; i < 9; i++) 
+    		arrayButton[i].setClickable(false);
     }
     
     public void refresh(View v) {
@@ -343,10 +359,9 @@ public class MainActivity extends Activity {
     	chBox_X.setEnabled(true);
     	
     	for (int i = 0; i < 9; i++) {
-    		Button button = getButtonByNumber(i); 
-    		button.setEnabled(true);    		
-    		button.setClickable(true);
-    		button.setText("");
+    		arrayButton[i].setEnabled(true);
+    		arrayButton[i].setClickable(true);
+    		arrayButton[i].setText("");
     		mass[i] = 2;
     	}    	
     }
@@ -354,9 +369,11 @@ public class MainActivity extends Activity {
     public void chooseX(View v) {
     	chBox_X.setChecked(true);
     	chBox_O.setChecked(false);
+    	setMySign(sign.X);
     }
     public void chooseO(View v) {
     	chBox_O.setChecked(true);
     	chBox_X.setChecked(false);
+    	setMySign(sign.O);
     }
 }
