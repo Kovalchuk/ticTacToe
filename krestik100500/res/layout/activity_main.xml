@@ -146,5 +146,24 @@
          android:layout_toRightOf="@+id/butRefresh"
          android:orientation="vertical" >
      </LinearLayout>
+
+     <CheckBox
+         android:id="@+id/CheckBox_O"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentRight="true"
+         android:layout_alignParentTop="true"
+         android:onClick="chooseO"
+         android:text="O" />
+
+     <CheckBox
+         android:id="@+id/checkBox_X"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"
+         android:layout_toLeftOf="@+id/CheckBox_O"
+         android:checked="true"
+         android:onClick="chooseX"
+         android:text="X" />
      
 </RelativeLayout>

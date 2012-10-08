@@ -23,10 +23,13 @@
 package com.example.krestik100500;
 
 
+import android.R.string;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.view.Menu;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -48,10 +51,17 @@ public class MainActivity extends Activity {
 	private Button but6;
 	private Button but7; 
 	private Button but8;	
+	private CheckBox chBox_O;
+	private CheckBox chBox_X;
 	private LinearLayout container;
 	
 	private TextView text1; 
 	int[] mass ={2, 2, 2, 2, 2, 2, 2, 2, 2}; 
+	
+	
+	enum ResultGame { UNDEFINED, XWIN, OWIN, DRAW }
+	
+	ResultGame resultGame = ResultGame.UNDEFINED;  
 
 	
 
@@ -69,11 +79,17 @@ public class MainActivity extends Activity {
         but5 = (Button)findViewById(R.id.btnButton6);
         but6 = (Button)findViewById(R.id.btnButton7);
         but7 = (Button)findViewById(R.id.btnButton8);
-        but8 = (Button)findViewById(R.id.btnButton9);        
+        but8 = (Button)findViewById(R.id.btnButton9);   
+        
+        chBox_O = (CheckBox)findViewById(R.id.CheckBox_O);
+        chBox_X = (CheckBox)findViewById(R.id.checkBox_X);
      
         text1 = (TextView)findViewById(R.id.textView1);    
         
-    	refresh(null);
+    	refresh(null);    	
+  
+//        
+//        finish();  
         
 
         
@@ -161,6 +177,8 @@ public class MainActivity extends Activity {
     }
     
     public void myClick(View v){    	
+    	chBox_O.setEnabled(false);
+    	chBox_X.setEnabled(false);
 
     	Button butt = (Button) v;
     	butt.setText("X");
@@ -257,25 +275,60 @@ public class MainActivity extends Activity {
     			result = mass[8];
     	}
     	
-    	boolean over = false;
+//    	boolean draw = true;
+//    	for (int i = 0; i < mass.length; i++)
+//    		if  (mass[i] == 2)
+//    			draw = false;
+    	
+
+    	
+
     	
     	if (result != 2) {    		 
     		gameOver(result);
-    		over = true;
+    		return true;
     	}
-    	return over;
+    	else {
+			boolean cellsAreFilled = true;
+			for (int i = 0; i < mass.length; i++)
+				if (mass[i] == 2) {
+					cellsAreFilled = false;
+					break;
+				}
+			
+			if (cellsAreFilled)
+				gameOver(3);
+			
+		}
+    	return false;
     }
     
     public void gameOver(int result) {
     	
-    	if (result == 0)    	
-    		text1.setText("Телефон умнее тебя :-)");
-    	else if (result == 1)    	
-    		text1.setText("ПОЗДАВЛЯЮ!!!");
-    	else    	
-    		text1.setText("Какая-то ошибка");
+    	String str;
     	
+    	if (result == 0)    	
+    		str = "Телефон умнее тебя :-)";
+    	else if (result == 1)    	
+    		str = "ПОЗДАВЛЯЮ!!!";
+    	else if(result == 3)
+    		str = "НИЧЬЯ!";
+    	else
+    		str = "Какая-то ошибка";
+    	
+
+//        AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);                      
+//        dlgAlert.setMessage("Игра окончена.");
+//        dlgAlert.setTitle(str);              
+//        dlgAlert.setPositiveButton("OK", null);
+//        dlgAlert.setCancelable(true);
+//        dlgAlert.create().show();
+    	
+    	text1.setText(str);
 		text1.setVisibility(View.VISIBLE);
+		
+    	chBox_O.setEnabled(true);
+    	chBox_X.setEnabled(true);
 		
     	for (int i = 0; i < 9; i++) {
     		Button button = getButtonByNumber(i);   		
@@ -286,6 +339,8 @@ public class MainActivity extends Activity {
     public void refresh(View v) {
     	text1.setVisibility(View.INVISIBLE);
     	text1.setText("");
+    	chBox_O.setEnabled(true);
+    	chBox_X.setEnabled(true);
     	
     	for (int i = 0; i < 9; i++) {
     		Button button = getButtonByNumber(i); 
@@ -294,5 +349,14 @@ public class MainActivity extends Activity {
     		button.setText("");
     		mass[i] = 2;
     	}    	
+    }
+    
+    public void chooseX(View v) {
+    	chBox_X.setChecked(true);
+    	chBox_O.setChecked(false);
+    }
+    public void chooseO(View v) {
+    	chBox_O.setChecked(true);
+    	chBox_X.setChecked(false);
     }
 }
