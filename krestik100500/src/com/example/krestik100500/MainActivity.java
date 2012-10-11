@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.graphics.Path.FillType;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.View;
 import android.widget.CheckBox;
@@ -40,8 +41,10 @@ import android.widget.RelativeLayout;
 
 import android.view.Display; 
 import java.io.*; 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class MainActivity extends Activity {
@@ -70,7 +73,7 @@ public class MainActivity extends Activity {
 	
 	
 	private CheckBox chBox_O;
-	private CheckBox chBox_X;
+	private CheckBox chBox_X; 	
 	private LinearLayout container;
 	
 	private TextView text1; 
@@ -79,6 +82,9 @@ public class MainActivity extends Activity {
 					cellNotFilled, cellNotFilled, cellNotFilled, 
 					cellNotFilled, cellNotFilled, cellNotFilled
 				 };
+	
+	List<Pair<Integer, Integer>> listHistoryStep = new ArrayList<Pair<Integer, Integer>>();  // Кто ходил, куда ходил.
+	Pair<Integer, Integer> p;
 	
 	enum ResultGame { UNDEFINED, XWIN, OWIN, DRAW }	
 	ResultGame resultGame = ResultGame.UNDEFINED;
@@ -147,34 +153,7 @@ public class MainActivity extends Activity {
         
         
     }
-    private int getNumCellByRules1() {
-    	return getNumCellByRules(cellFilledPhone);
-    }
-    private int getNumCellByRules2() {
-    	return getNumCellByRules(cellFilledUser);
-    }
-    
-    private int getNumCellByRules(int cellFilled) {
-    	
-    	for (int i = 0; i < arrayLines.length; i++) {
-    		
-    		int numCell = checkRules1(arrayLines[i][0], arrayLines[i][1], arrayLines[i][2], cellFilled);
-    		if (numCell < 10)
-    			return numCell;
-    	}    	
-    	
-    	return 10;
-    }
-    
-    private int checkRules1(int a, int b, int c, int cellFilled) {
-    	if (mass[a] == cellNotFilled && mass[b] == mass[c] && mass[c] == cellFilled)
-    		return a;
-    	else if (mass[b] == cellNotFilled && mass[a] == mass[c] && mass[c] == cellFilled)
-    		return b;
-    	else if (mass[c] == cellNotFilled && mass[a] == mass[b] && mass[b] == cellFilled)
-    		return c;
-    	return 10;
-    }
+
 
     private void setMySign(sign sig) {
     	mySign = sig;    	
@@ -207,7 +186,8 @@ public class MainActivity extends Activity {
     		if (arrayButton[a].getId() == v.getId()) {
     			arrayButton[a].setText(getMySignStr());
     			arrayButton[a].setEnabled(false);    
-    			mass[a] = cellFilledUser;
+    			mass[a] = cellFilledUser;    			
+    			listHistoryStep.add(Pair.create(cellFilledUser, a));
     			break;
     		}
     	}
@@ -219,33 +199,8 @@ public class MainActivity extends Activity {
     	checkResult();    			
     }
     
-    
-    private int getNumCellByRulesZero3() {    	
-    	int [] angels = {0, 2, 6, 8};
-//    	
-//    	List<Integer> list = Arrays.asList(0, 2, 6, 8);
-//    	
-//    	Random r = new Random();
-//    	
-//    	while (!list.isEmpty()) {
-//    		int num = r.nextInt(list.size());
-//    		if (mass[list.get(num)] == cellNotFilled)    		
-//    	}
-    	
-    	
-    	
-    	
-    	
-    	for (int i = 0; i < angels.length; i++) {
-    		if (mass[angels[i]] == cellNotFilled)
-    			return angels[i];
-    	}
-    	return 10;
-    }
-    
     public void clickPhone() {
-    	int numCell = 10;
-    	
+    	int numCell = 10;    	
     	
     	numCell = getNumCellByRules1();		// First Rule;
     	if (fixPhoneMove(numCell))
@@ -253,16 +208,18 @@ public class MainActivity extends Activity {
     	numCell = getNumCellByRules2();		// Second Rule;
     	if (fixPhoneMove(numCell))
 			return;
+		
+		numCell = getNumCellByRulesZero3(); // First Rule by Zero;
+    	if (fixPhoneMove(numCell))
+			return;
     	
-    	if (0 == 0) {    		
-    		if (mass[4] == cellFilledUser) {    			
-    			numCell = getNumCellByRulesZero3();
-    	    	if (fixPhoneMove(numCell))
-    				return;
-    		}
-    		
-    	}
+		numCell = getNumCellByRulesZero4(); // Fourth Rule by Zero;
+    	if (fixPhoneMove(numCell))
+			return;
     	
+		numCell = getNumCellByRulesZero5(); // Fourth Rule by Zero;
+    	if (fixPhoneMove(numCell))
+			return;
     	
     	for (int i = 0; i < 9; i++) {
     		if (mass[i] == cellNotFilled) {
@@ -270,17 +227,231 @@ public class MainActivity extends Activity {
     			break;
     		}
     	}    
-    }
+    } 
     
     private boolean fixPhoneMove (int numCell) {
     	if (numCell < 10) {
 			mass[numCell] = cellFilledPhone;
 			arrayButton[numCell].setText(getPhoneSignStr());
 			arrayButton[numCell].setEnabled(false);
+			listHistoryStep.add(Pair.create(cellFilledPhone, numCell));
 			return true;
     	}
     	return false;
     }
+    
+    private int getNumCellByRules1() {
+    	return getNumCellByRules(cellFilledPhone);
+    }
+    private int getNumCellByRules2() {
+    	return getNumCellByRules(cellFilledUser);
+    }
+    
+    private int getNumCellByRules(int cellFilled) {
+    	
+    	for (int i = 0; i < arrayLines.length; i++) {
+    		
+    		int numCell = checkRules1(arrayLines[i][0], arrayLines[i][1], arrayLines[i][2], cellFilled);
+    		if (numCell < 10)
+    			return numCell;
+    	}    	
+    	
+    	return 10;
+    }
+    
+    private int checkRules1(int a, int b, int c, int cellFilled) {
+    	if (mass[a] == cellNotFilled && mass[b] == mass[c] && mass[c] == cellFilled)
+    		return a;
+    	else if (mass[b] == cellNotFilled && mass[a] == mass[c] && mass[c] == cellFilled)
+    		return b;
+    	else if (mass[c] == cellNotFilled && mass[a] == mass[b] && mass[b] == cellFilled)
+    		return c;
+    	return 10;
+    }
+    
+    private int getNumCellByRulesZero3() {    	
+    	if (listHistoryStep.get(0).first == cellFilledUser && listHistoryStep.get(0).second == 4) {
+    	
+	    	int [] angels = {0, 2, 6, 8};
+	    	
+	//    	List<Integer> list = Arrays.asList(0, 2, 6, 8);    	
+	//    	Random r = new Random();    	
+	//    	while (!list.isEmpty()) {
+	//    		int num = r.nextInt(list.size());
+	//    		if (mass[list.get(num)] == cellNotFilled)
+	//    			return list.get(num);    		
+	//    		list.remove(num);
+	//    	}    	
+	    	
+	    	for (int i = 0; i < angels.length; i++) {
+	    		if (mass[angels[i]] == cellNotFilled)
+	    			return angels[i];
+	    	}
+    	}
+    	return 10;
+    }
+    private int getNumCellByRulesZero4() {
+    	
+    	boolean XFirstMoveWasToCorner = false;
+    	if (listHistoryStep.get(0).first == cellFilledUser && 
+    			(listHistoryStep.get(0).second == 0 || 
+    			 listHistoryStep.get(0).second == 2 || 
+    			 listHistoryStep.get(0).second == 6 || 
+    			 listHistoryStep.get(0).second == 8) ) {
+    		XFirstMoveWasToCorner = true;
+    	}
+    	
+    	if (XFirstMoveWasToCorner && mass[4] == cellNotFilled)
+    		return 4;
+    	
+    	
+    	if (XFirstMoveWasToCorner) {
+    		int opposite = -1;
+    		switch (listHistoryStep.get(0).second) {
+			case 0:
+				opposite = 8;
+				break;
+			case 2:
+				opposite = 6;
+				break;
+			case 6:
+				opposite = 2;
+				break;
+			case 8:
+				opposite = 0;
+				break;
+			default:
+				break;
+			}
+    		
+    		if (mass[opposite] == cellNotFilled)
+    			return opposite;
+    		else {			// RANDOM RANDOM RANDOM
+    			if (mass[1] == cellNotFilled)
+    				return 1;
+    			else if (mass[3] == cellNotFilled)
+    				return 3;
+    			else if (mass[5] == cellNotFilled)
+    				return 5;
+    			else if (mass[7] == cellNotFilled)
+    				return 7;
+    		}
+    			
+    	}
+    
+    	return 10;
+    }
+    
+    private int getNumCellByRulesZero5() {
+    	
+    	boolean XFirstMoveWasToCorner = stepWasToCorner(0, cellFilledUser);    	
+    	if (!XFirstMoveWasToCorner && mass[4] == cellNotFilled)
+    		return 4;
+    	
+    	boolean XSecondMoveWasToCorner = stepWasToCorner(2, cellFilledUser);
+    	int opposite = getOppositeSide(listHistoryStep.get(2).second);
+    	if (XSecondMoveWasToCorner) {    		
+    		if (mass[opposite] == cellNotFilled)
+    			return opposite;
+    	}
+    	else {
+    		if (mass[opposite] == cellFilledUser) {	// GO TO CORNER
+    			if (mass[0] == cellNotFilled)	// RANDOM RANDOM RANDOM
+    				return 0;
+    			else if (mass[2] == cellNotFilled)
+    				return 2;
+    			else if (mass[6] == cellNotFilled)
+    				return 6;
+    			else if (mass[8] == cellNotFilled)
+    				return 8;
+    		}
+    		else {
+
+    			int numCell = 10;
+    			switch (listHistoryStep.get(0).second) {
+				case 1:
+    				if (listHistoryStep.get(2).second == 3)
+    					numCell = 0;
+    				else if (listHistoryStep.get(2).second == 5)
+    					numCell = 2;					
+					break;
+				case 3:
+    				if (listHistoryStep.get(2).second == 1)
+    					numCell = 0;
+    				else if (listHistoryStep.get(2).second == 7)
+    					numCell = 6;					
+					break;
+				case 5:
+    				if (listHistoryStep.get(2).second == 1)
+    					numCell = 2;
+    				else if (listHistoryStep.get(2).second == 7)
+    					numCell = 8;    				
+					break;
+				case 7:
+    				if (listHistoryStep.get(2).second == 3)
+    					numCell = 6;
+    				else if (listHistoryStep.get(2).second == 5)
+    					numCell = 8;
+    				break;
+				}
+    			if ((numCell != 10) && mass[numCell] == cellNotFilled)
+    				return numCell;
+    		}
+    	}
+    	
+    	
+    	
+    	
+    	
+    	return 10;
+    }
+    
+    
+    
+    
+    
+    
+    
+    private boolean stepWasToCorner(int numberStep, int whoWent) {
+    	if (listHistoryStep.get(numberStep).first == whoWent &&
+    			(listHistoryStep.get(numberStep).second == 0 ||
+    			listHistoryStep.get(numberStep).second == 2 ||
+    			listHistoryStep.get(numberStep).second == 6 ||
+    			listHistoryStep.get(numberStep).second == 8) ) {
+    		return true;
+    		}
+    	return false;
+    }
+    private int getOppositeSide(int numberCell) {
+    	switch (numberCell) {
+		case 0:
+			return 8;
+		case 1:
+			return 7;
+		case 2:
+			return 6;
+		case 3:
+			return 5;
+		case 5:
+			return 3;
+		case 6:
+			return 2;
+		case 7:
+			return 1;
+		case 8:
+			return 0;
+		}
+    	return 4;    	
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     public boolean checkResult(){   	
     	
@@ -357,6 +528,7 @@ public class MainActivity extends Activity {
     	text1.setText("");
     	chBox_O.setEnabled(true);
     	chBox_X.setEnabled(true);
+    	listHistoryStep.clear();
     	
     	for (int i = 0; i < 9; i++) {
     		arrayButton[i].setEnabled(true);
