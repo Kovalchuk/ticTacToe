@@ -23,19 +23,36 @@
 package com.example.krestik100500;
 
 
+import android.R.drawable;
 import android.R.string;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
 import android.graphics.Path.FillType;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.util.Pair;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 
@@ -46,6 +63,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends Activity {
 
@@ -53,6 +72,10 @@ public class MainActivity extends Activity {
 	static final int cellFilledPhone = 0;
 	static final int cellFilledUser = 1;
 	static final int cellNotFilled = 2;
+	
+	enum GameResult { WIN_USER, WIN_PHONE, WIN_DRAW, WIN_UNDEFINED }
+	
+	
 	
 	
 	Button [] arrayButton = new Button[9];	
@@ -76,7 +99,8 @@ public class MainActivity extends Activity {
 	private CheckBox chBox_X; 	
 	private LinearLayout container;
 	
-	private TextView text1; 
+	private TextView text1;
+//	private TextView text2;
 	int[] mass = {
 					cellNotFilled, cellNotFilled, cellNotFilled, 
 					cellNotFilled, cellNotFilled, cellNotFilled, 
@@ -85,9 +109,6 @@ public class MainActivity extends Activity {
 	
 	List<Pair<Integer, Integer>> listHistoryStep = new ArrayList<Pair<Integer, Integer>>();  // Кто ходил, куда ходил.
 	Pair<Integer, Integer> p;
-	
-	enum ResultGame { UNDEFINED, XWIN, OWIN, DRAW }	
-	ResultGame resultGame = ResultGame.UNDEFINED;
 	
 	enum sign { X, O }
 	sign mySign = sign.X;
@@ -100,13 +121,16 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
         arrayButton[0] = (Button)findViewById(R.id.btnButton1);        
         arrayButton[1] = (Button)findViewById(R.id.btnButton2);
         arrayButton[2] = (Button)findViewById(R.id.btnButton3);
         arrayButton[3] = (Button)findViewById(R.id.btnButton4);
         arrayButton[4] = (Button)findViewById(R.id.btnButton5);
         arrayButton[5] = (Button)findViewById(R.id.btnButton6);
-        arrayButton[6] = (Button)findViewById(R.id.btnButton7);
+        arrayButton[6] = (Button)findViewById(R.id.btnButton7); 
         arrayButton[7] = (Button)findViewById(R.id.btnButton8);
         arrayButton[8] = (Button)findViewById(R.id.btnButton9);   
         
@@ -114,44 +138,32 @@ public class MainActivity extends Activity {
         chBox_X = (CheckBox)findViewById(R.id.checkBox_X);
      
         text1 = (TextView)findViewById(R.id.textView1);    
+//        text2 = (TextView)findViewById(R.id.textView2);
         
-    	refresh(null);
+    	refresh(null); 
+    }
+    
+    @Override
+    public void onBackPressed(){
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-//        
-//        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-//        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-//        but1.setLayoutParams(params);
-//
-//        params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-//        params.addRule(RelativeLayout.RIGHT_OF, but1.getId());
-//        but2.setLayoutParams(params);
-        
-        
-//        but2 = (Button)findViewById(R.id.button2);
+        builder.setTitle("Выход");
+        builder.setMessage("Вы действительно хотите выйти?");
 
-        
-        
-        
-        
-//        linearLayout = (LinearLayout)findViewById(R.id.layout1);
-        
-        
-        
-//    	Display display=getWindowManager().getDefaultDisplay();
-//        int width=display.getWidth();
-//        but1.setWidth(width/3);
-//        but2.setWidth(width/3);    
-        
-//         
-        
-//        but1.setLayoutParams(new LayoutParams(20, 30));
-//        AbsoluteLayout.LayoutParams layoutParams = new AbsoluteLayout.LayoutParams(100,50, 200, 200);
-//        but1.setLayoutParams(new LayoutParams(20,20));
-//        linearLayout.addView(but1, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        
-        
-        
-        
+        builder.setPositiveButton("Да", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            	System.exit(0);
+            }
+        });
+
+        builder.setNegativeButton("Нет", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface arg0, int arg1) {
+				
+			}
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
 
@@ -180,13 +192,19 @@ public class MainActivity extends Activity {
     public void myClick(View v){    	
     	chBox_O.setEnabled(false);
     	chBox_X.setEnabled(false);
-    
     	
+		ImageButton but = new ImageButton(this);
+		Resources res = getResources();
+		Drawable drawable = res.getDrawable(R.drawable.image_x);		
+		but.setImageDrawable(drawable);
+    
+    	 
     	for (int a = 0; a < arrayButton.length; a++) {
     		if (arrayButton[a].getId() == v.getId()) {
     			arrayButton[a].setText(getMySignStr());
+    			arrayButton[a].setBackgroundResource(R.drawable.image_x);
     			arrayButton[a].setEnabled(false);    
-    			mass[a] = cellFilledUser;    			
+    			mass[a] = cellFilledUser;    			 
     			listHistoryStep.add(Pair.create(cellFilledUser, a));
     			break;
     		}
@@ -320,7 +338,7 @@ public class MainActivity extends Activity {
 			case 8:
 				opposite = 0;
 				break;
-			default:
+			default: 
 				break;
 			}
     		
@@ -455,73 +473,74 @@ public class MainActivity extends Activity {
     
     public boolean checkResult(){   	
     	
-    	int result = 2;    	
+    	GameResult result = GameResult.WIN_UNDEFINED;
     	
-    	if (mass[4] != cellNotFilled) {
-			if (
-					(mass[3] == mass[4] && mass[4] == mass[5]) || 
-					(mass[1] == mass[4] && mass[4] == mass[7]) ||
-					(mass[0] == mass[4] && mass[4] == mass[8]) ||
-					(mass[2] == mass[4] && mass[4] == mass[6])
-			   )
-				result = mass[4];
+    	for (int i = 0; i < arrayLines.length; i++) {
+    		int a = arrayLines[i][0];
+    		int b = arrayLines[i][1];
+    		int c = arrayLines[i][2];
+    		if (mass[a] == mass[b] && mass[b] == mass[c] && mass[c] != cellNotFilled) {
+    			if (mass[a] == cellFilledPhone)
+    				result = GameResult.WIN_PHONE;
+    			else
+    				result = GameResult.WIN_USER;
+    			break;
+    		}
     	}
     	
-    	if (mass[0] != cellNotFilled) {
-    		if (
-    				(mass[0] == mass[1] && mass[1] == mass[2]) ||
-    				(mass[0] == mass[3] && mass[3] == mass[6])
-    		   )
-    			result = mass[0];
-    	}
+    	if (result == GameResult.WIN_UNDEFINED && listHistoryStep.size() == 9)
+    		result = GameResult.WIN_DRAW;
     	
-    	if (mass[8] != cellNotFilled) {
-    		if (
-    				(mass[2] == mass[5] && mass[5] == mass[8]) ||
-    				(mass[6] == mass[7] && mass[7] == mass[8])
-    		   )
-    			result = mass[8];
-    	}
-    	
-    	if (result != 2) {    		 
+    	if (result != GameResult.WIN_UNDEFINED) {
     		gameOver(result);
     		return true;
     	}
-    	else {
-			boolean cellsAreFilled = true;
-			for (int i = 0; i < mass.length; i++)
-				if (mass[i] == cellNotFilled) {
-					cellsAreFilled = false;
-					break;
-				}			
-			if (cellsAreFilled)
-				gameOver(3);			
-		}
+
     	return false;
     }
     
-    public void gameOver(int result) {
+    public void gameOver(GameResult result) {
     	
     	String str;
-    	
-    	if (result == 0)    	
-    		str = "Телефон умнее тебя :-)";
-    	else if (result == 1)    	
-    		str = "ПОЗДАВЛЯЮ!!!";
-    	else if(result == 3)
-    		str = "НИЧЬЯ!";
-    	else
-    		str = "Какая-то ошибка";
-    	
-    	text1.setText(str);
-		text1.setVisibility(View.VISIBLE);
+    	switch (result) {
+		case WIN_USER:
+			str = "ПОЗДАВЛЯЮ!!!";
+			break;
+		case WIN_PHONE:
+			str = "Телефон умнее тебя :-)";
+			break;
+		case WIN_DRAW:
+			str = "НИЧЬЯ!";
+			break;
+		default:
+			str = "Какая-то ошибка";
+			break;
+		}    				 
+
+		Toast toast = Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT);		
+		toast.setGravity(Gravity.CENTER, 0, 0);		
+		toast.show();		
+	     
 		
-    	chBox_O.setEnabled(true);
+
+    	chBox_O.setEnabled(true); 
     	chBox_X.setEnabled(true);
 		
     	for (int i = 0; i < 9; i++) 
     		arrayButton[i].setClickable(false);
-    }
+    	
+		new CountDownTimer(2000, 1000) {
+
+		     public void onTick(long millisUntilFinished) {
+		     }
+
+		     public void onFinish() {
+		    	 refresh(null);
+		     }
+		  }.start();
+    	}
+
+
     
     public void refresh(View v) {
     	text1.setVisibility(View.INVISIBLE);
