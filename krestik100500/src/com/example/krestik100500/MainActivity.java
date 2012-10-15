@@ -34,6 +34,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Path.FillType;
@@ -44,6 +45,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -119,10 +121,7 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setContentView(R.layout.activity_main);        
         
         arrayButton[0] = (Button)findViewById(R.id.btnButton1);        
         arrayButton[1] = (Button)findViewById(R.id.btnButton2);
@@ -139,7 +138,7 @@ public class MainActivity extends Activity {
      
         text1 = (TextView)findViewById(R.id.textView1);    
 //        text2 = (TextView)findViewById(R.id.textView2);
-        
+        chooseX(null);
     	refresh(null); 
     }
     
@@ -189,20 +188,23 @@ public class MainActivity extends Activity {
         return true;
     }   
     
+//    public void myClick1000(View v) {
+//    	ImageButton bu = (ImageButton)findViewById(R.id.btnBut);
+//    	
+//    	bu.setImageResource(R.drawable.image_x);
+//    	
+//
+//    }
+    
     public void myClick(View v){    	
     	chBox_O.setEnabled(false);
     	chBox_X.setEnabled(false);
-    	
-		ImageButton but = new ImageButton(this);
-		Resources res = getResources();
-		Drawable drawable = res.getDrawable(R.drawable.image_x);		
-		but.setImageDrawable(drawable);
-    
-    	 
+     
     	for (int a = 0; a < arrayButton.length; a++) {
     		if (arrayButton[a].getId() == v.getId()) {
     			arrayButton[a].setText(getMySignStr());
-    			arrayButton[a].setBackgroundResource(R.drawable.image_x);
+    			
+
     			arrayButton[a].setEnabled(false);    
     			mass[a] = cellFilledUser;    			 
     			listHistoryStep.add(Pair.create(cellFilledUser, a));
@@ -287,76 +289,28 @@ public class MainActivity extends Activity {
     	return 10;
     }
     
-    private int getNumCellByRulesZero3() {    	
-    	if (listHistoryStep.get(0).first == cellFilledUser && listHistoryStep.get(0).second == 4) {
+    private int getNumCellByRulesZero3() {
     	
-	    	int [] angels = {0, 2, 6, 8};
-	    	
-	//    	List<Integer> list = Arrays.asList(0, 2, 6, 8);    	
-	//    	Random r = new Random();    	
-	//    	while (!list.isEmpty()) {
-	//    		int num = r.nextInt(list.size());
-	//    		if (mass[list.get(num)] == cellNotFilled)
-	//    			return list.get(num);    		
-	//    		list.remove(num);
-	//    	}    	
-	    	
-	    	for (int i = 0; i < angels.length; i++) {
-	    		if (mass[angels[i]] == cellNotFilled)
-	    			return angels[i];
-	    	}
+    	if (listHistoryStep.get(0).first == cellFilledUser && listHistoryStep.get(0).second == 4) {    	
+    		return getAnyCellNumber(true);    		
     	}
     	return 10;
     }
     private int getNumCellByRulesZero4() {
     	
-    	boolean XFirstMoveWasToCorner = false;
-    	if (listHistoryStep.get(0).first == cellFilledUser && 
-    			(listHistoryStep.get(0).second == 0 || 
-    			 listHistoryStep.get(0).second == 2 || 
-    			 listHistoryStep.get(0).second == 6 || 
-    			 listHistoryStep.get(0).second == 8) ) {
-    		XFirstMoveWasToCorner = true;
-    	}
+    	boolean XFirstMoveWasToCorner = stepWasToCorner(0, cellFilledUser);
     	
     	if (XFirstMoveWasToCorner && mass[4] == cellNotFilled)
-    		return 4;
-    	
+    		return 4;    	
     	
     	if (XFirstMoveWasToCorner) {
-    		int opposite = -1;
-    		switch (listHistoryStep.get(0).second) {
-			case 0:
-				opposite = 8;
-				break;
-			case 2:
-				opposite = 6;
-				break;
-			case 6:
-				opposite = 2;
-				break;
-			case 8:
-				opposite = 0;
-				break;
-			default: 
-				break;
-			}
+    		int opposite = getOppositeSide(listHistoryStep.get(0).second);
     		
     		if (mass[opposite] == cellNotFilled)
     			return opposite;
-    		else {			// RANDOM RANDOM RANDOM
-    			if (mass[1] == cellNotFilled)
-    				return 1;
-    			else if (mass[3] == cellNotFilled)
-    				return 3;
-    			else if (mass[5] == cellNotFilled)
-    				return 5;
-    			else if (mass[7] == cellNotFilled)
-    				return 7;
-    		}
-    			
-    	}
-    
+    		else 
+    			return getAnyCellNumber(false);    			
+    	}    
     	return 10;
     }
     
@@ -368,20 +322,11 @@ public class MainActivity extends Activity {
     	
     	boolean XSecondMoveWasToCorner = stepWasToCorner(2, cellFilledUser);
     	int opposite = getOppositeSide(listHistoryStep.get(2).second);
-    	if (XSecondMoveWasToCorner) {    		
-    		if (mass[opposite] == cellNotFilled)
-    			return opposite;
-    	}
+    	if (XSecondMoveWasToCorner && (mass[opposite] == cellNotFilled))
+    		return opposite;    	
     	else {
-    		if (mass[opposite] == cellFilledUser) {	// GO TO CORNER
-    			if (mass[0] == cellNotFilled)	// RANDOM RANDOM RANDOM
-    				return 0;
-    			else if (mass[2] == cellNotFilled)
-    				return 2;
-    			else if (mass[6] == cellNotFilled)
-    				return 6;
-    			else if (mass[8] == cellNotFilled)
-    				return 8;
+    		if (mass[opposite] == cellFilledUser) {	
+    			return getAnyCellNumber(true);
     		}
     		else {
 
@@ -417,10 +362,6 @@ public class MainActivity extends Activity {
     		}
     	}
     	
-    	
-    	
-    	
-    	
     	return 10;
     }
     
@@ -428,7 +369,34 @@ public class MainActivity extends Activity {
     
     
     
-    
+    private int getAnyCellNumber(boolean corner) {
+    	int [] angels = new int[4];
+    	if (corner) {
+    		angels[0] = 0;
+    		angels[1] = 2;
+    		angels[2] = 6;
+    		angels[3] = 8;
+    	}
+    	else {
+    		angels[0] = 1;
+    		angels[1] = 3;
+    		angels[2] = 5;
+    		angels[3] = 7;    		
+    	}
+    	
+    	List<Integer> list =  new ArrayList< Integer>();
+    	for (int i = 0; i < angels.length; i++) {
+    		if (mass[angels[i]] == cellNotFilled)
+    			list.add(angels[i]);	    		
+    	}
+    	
+    	if (list.size() > 0) {
+	    	Random r = new Random();
+	    	int num = r.nextInt(list.size());
+	    	return list.get(num);
+    	}
+    	return 10;
+    }
     
     private boolean stepWasToCorner(int numberStep, int whoWent) {
     	if (listHistoryStep.get(numberStep).first == whoWent &&
@@ -551,8 +519,10 @@ public class MainActivity extends Activity {
     	
     	for (int i = 0; i < 9; i++) {
     		arrayButton[i].setEnabled(true);
-    		arrayButton[i].setClickable(true);
+    		arrayButton[i].setClickable(true); 
     		arrayButton[i].setText("");
+//    		arrayButton[i].setWidth(160);
+//    		arrayButton[i].setHeight(160);
     		mass[i] = 2;
     	}    	
     }

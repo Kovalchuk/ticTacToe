@@ -7,22 +7,21 @@
     android:background="@drawable/background"
     android:orientation="horizontal" >
 
+
     <Button
         android:id="@+id/btnButton1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"        
         android:text="Button 1"
 		android:width="90dp"
-        android:height="90dp"
+        android:height="90dp"        
         android:layout_toLeftOf="@+id/btnButton2"
     	android:layout_above="@+id/btnButton5"
     	android:onClick="myClick"
     	android:scaleType="fitCenter"    	
     	/>
-        	<ImageButton android:src="@drawable/image_x"
-            android:scaleType="fitCenter" 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        
+
  
     <Button
         android:id="@+id/btnButton2"
@@ -208,4 +207,40 @@
          android:onClick="chooseX"
          android:text="X" />
      
+     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent" 
+              android:layout_height="fill_parent" 
+              android:orientation="vertical"
+              android:layout_marginBottom="0px"
+              android:layout_marginTop="0px"
+              
+               >
+	 <CheckBox
+         android:id="@+id/checkBox_Simple"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_alignParentTop="true"         
+         android:text="Simple" />
+	 <CheckBox
+         android:id="@+id/checkBox_Medium"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"       
+         android:layout_margin="1dp"  
+         android:layout_below="@+id/checkBox_Simple"
+         
+
+
+         android:text="Medium" />
+	 <CheckBox
+         android:id="@+id/checkBox_Hard"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"         
+         android:layout_below="@+id/checkBox_Medium"
+
+                  
+         android:text="Hard" />
+</LinearLayout>
+
+
+          
 </RelativeLayout>
