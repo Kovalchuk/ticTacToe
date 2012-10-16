@@ -73,57 +73,40 @@ public class MainActivity extends Activity {
 
 	static final int cellFilledPhone = 0;
 	static final int cellFilledUser = 1;
-	static final int cellNotFilled = 2;
+	static final int cellNotFilled = 2;	
+	static final int sign_O = 0;
+	static final int sign_X = 1;
+	
+	int[] mass = {
+			cellNotFilled, cellNotFilled, cellNotFilled, 
+			cellNotFilled, cellNotFilled, cellNotFilled, 
+			cellNotFilled, cellNotFilled, cellNotFilled
+ 		 };
+	int my_sign = sign_X;
 	
 	enum GameResult { WIN_USER, WIN_PHONE, WIN_DRAW, WIN_UNDEFINED }
 	enum GameDificult { SIMPLE, MEDIUM, HARD }
-	GameDificult gameDificult = GameDificult.SIMPLE;
+	GameDificult gameDificult = GameDificult.SIMPLE;	
 	
-	
-	
-	
-	
-	Button [] arrayButton = new Button[9];	
-	
-	int [] line1 = {0, 1, 2};
-	int [] line2 = {3, 4, 5};
-	
-	
-	// 012
-	// 345
-	// 678
-
-	int [][]arrayLines = {  {0,1,2}, {3,4,5}, {6, 7, 8},
+	Button [] arrayButton = new Button[9];
+	int [][]arrayLines = {
+							{0,1,2}, {3,4,5}, {6, 7, 8},
 							{0,3,6}, {1,4,7}, {2, 5, 8},
 							{0,4,8}, {2,4,6}
-						};
+						 };
 	
+
 	
+	List<Pair<Integer, Integer>> listHistoryStep = new ArrayList<Pair<Integer, Integer>>();  // Кто ходил, куда ходил.		
+	ArrayList<Integer> listHistory_STATE = new ArrayList<Integer>();
 	
 	private CheckBox chBox_O;
 	private CheckBox chBox_X;
 	private CheckBox chBox_Simple;
 	private CheckBox chBox_Medium; 
-	private CheckBox chBox_Hard;
+	private CheckBox chBox_Hard;	
 	
-	private LinearLayout container;
-	
-	private TextView text1;
-//	private TextView text2;
-	int[] mass = {
-					cellNotFilled, cellNotFilled, cellNotFilled, 
-					cellNotFilled, cellNotFilled, cellNotFilled, 
-					cellNotFilled, cellNotFilled, cellNotFilled
-				 };
-	
-	List<Pair<Integer, Integer>> listHistoryStep = new ArrayList<Pair<Integer, Integer>>();  // Кто ходил, куда ходил.
-	Pair<Integer, Integer> p;
-	
-	enum sign { X, O }
-	sign mySign = sign.X;
-	
-
-	
+	private TextView text1;	
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -138,7 +121,7 @@ public class MainActivity extends Activity {
         arrayButton[5] = (Button)findViewById(R.id.btnButton6);
         arrayButton[6] = (Button)findViewById(R.id.btnButton7); 
         arrayButton[7] = (Button)findViewById(R.id.btnButton8);
-        arrayButton[8] = (Button)findViewById(R.id.btnButton9);   
+        arrayButton[8] = (Button)findViewById(R.id.btnButton9);  
         
         chBox_O = (CheckBox)findViewById(R.id.CheckBox_O);
         chBox_X = (CheckBox)findViewById(R.id.checkBox_X);
@@ -146,12 +129,13 @@ public class MainActivity extends Activity {
         chBox_Medium = (CheckBox)findViewById(R.id.checkBox_Medium);
         chBox_Hard = (CheckBox)findViewById(R.id.checkBox_Hard);
      
-        text1 = (TextView)findViewById(R.id.textView1);    
-//        text2 = (TextView)findViewById(R.id.textView2);
+        text1 = (TextView)findViewById(R.id.textView1);
 
         chooseX(null);
         chooseSimple(null);
-    	refresh(null); 
+    	refresh(null);    	
+    	
+    	
     }
     
     @Override
@@ -176,37 +160,116 @@ public class MainActivity extends Activity {
         AlertDialog alert = builder.create();
         alert.show();
     }
+    
+    static final String MASS = "main massive in this game";
+    static final String MY_SIGN = "my sign - X or O";
+    static final String LIST_HISTORY = "my list history step - who and where";
+    static final String GAME_DIFFICULTY = "game difficulty";
+    static final String CHECK_BOX_ENABLE = "check box enable";
+    
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        // Save the user's current game state
+    	
+    	listHistory_STATE.clear();
+        for (int i = 0; i < listHistoryStep.size(); i++) {        	
+        	listHistory_STATE.add(listHistoryStep.get(i).first);
+        	listHistory_STATE.add(listHistoryStep.get(i).second);
+        }
+    	        
+        savedInstanceState.putInt(MY_SIGN, my_sign);
+        savedInstanceState.putInt(GAME_DIFFICULTY, getGameDificultInt());
+        savedInstanceState.putIntArray(MASS, mass);
+        savedInstanceState.putIntegerArrayList(LIST_HISTORY, listHistory_STATE);
+        savedInstanceState.putBoolean(CHECK_BOX_ENABLE, chBox_X.isEnabled());
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
+    }
+    
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Always call the superclass so it can restore the view hierarchy
+        super.onRestoreInstanceState(savedInstanceState);
+       
+        // Restore state members from saved instance
+        my_sign = savedInstanceState.getInt(MY_SIGN);
+        setGameDificultInt(savedInstanceState.getInt(GAME_DIFFICULTY));
+        mass = savedInstanceState.getIntArray(MASS);
+        listHistory_STATE = savedInstanceState.getIntegerArrayList(LIST_HISTORY);
+        boolean enabled = savedInstanceState.getBoolean(CHECK_BOX_ENABLE); 
+
+        chBox_O.setEnabled(enabled); 
+        chBox_X.setEnabled(enabled);
+        chBox_Simple.setEnabled(enabled);
+        chBox_Medium.setEnabled(enabled);
+        chBox_Hard.setEnabled(enabled);
+        
+        listHistoryStep.clear();
+        for (int i = 0; i < listHistory_STATE.size(); i = i + 2) {
+        	int a = i;
+        	int b = i + 1;
+        	Pair<Integer, Integer> p = new Pair<Integer, Integer>(listHistory_STATE.get(a),listHistory_STATE.get(b));
+        	listHistoryStep.add(p);
+        }
+        
+        for (int i = 0; i < mass.length; i++) {
+        	if (mass[i] == cellFilledPhone) {
+        		arrayButton[i].setEnabled(false);
+        		arrayButton[i].setText(getPhoneSignStr());
+        	}
+        	else if (mass[i] == cellFilledUser) {
+        		arrayButton[i].setEnabled(false);
+        		arrayButton[i].setText(getMySignStr());
+        	} 
+        }
+
+    }
 
 
-    private void setMySign(sign sig) {
-    	mySign = sig;    	
+    private void setMySign(int sign) {
+    	my_sign = sign;
     }
     private String getMySignStr() {
-    	if (mySign == sign.X)
+    	if (my_sign == sign_X)
     		return "X";
     	else
     		return "O";    	
     }
     private String getPhoneSignStr() {
-    	if (mySign == sign.X)
+    	if (my_sign == sign_X)
     		return "O";
     	else
     		return "X";    	
+    }
+    
+    private int getGameDificultInt() {
+    	if (gameDificult == GameDificult.MEDIUM)
+    		return 1;
+    	else if (gameDificult == GameDificult.HARD)
+    		return 2;
+    	else
+    		return 0;
+    }
+    private void setGameDificultInt(int dif) {
+    	switch (dif) {
+		case 1:
+			gameDificult = GameDificult.MEDIUM;
+			break;
+		case 2:
+			gameDificult = GameDificult.HARD;
+			break;
+		default:
+			gameDificult = GameDificult.SIMPLE;
+			break;
+		}    	
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
-    }   
-    
-//    public void myClick1000(View v) {
-//    	ImageButton bu = (ImageButton)findViewById(R.id.btnBut);
-//    	
-//    	bu.setImageResource(R.drawable.image_x);
-//    	
-//
-//    }
+    }
     
     public void myClick(View v){    	
     	chBox_O.setEnabled(false);
@@ -581,12 +644,12 @@ public class MainActivity extends Activity {
     public void chooseX(View v) {
     	chBox_X.setChecked(true);
     	chBox_O.setChecked(false);
-    	setMySign(sign.X);
+    	setMySign(sign_X);
     }
     public void chooseO(View v) {
     	chBox_O.setChecked(true);
     	chBox_X.setChecked(false);
-    	setMySign(sign.O);
+    	setMySign(sign_O);
     }
     public void chooseSimple(View v) {
     	chBox_Simple.setChecked(true);
