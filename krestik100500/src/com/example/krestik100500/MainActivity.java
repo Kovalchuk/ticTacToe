@@ -76,6 +76,9 @@ public class MainActivity extends Activity {
 	static final int cellNotFilled = 2;
 	
 	enum GameResult { WIN_USER, WIN_PHONE, WIN_DRAW, WIN_UNDEFINED }
+	enum GameDificult { SIMPLE, MEDIUM, HARD }
+	GameDificult gameDificult = GameDificult.SIMPLE;
+	
 	
 	
 	
@@ -98,7 +101,11 @@ public class MainActivity extends Activity {
 	
 	
 	private CheckBox chBox_O;
-	private CheckBox chBox_X; 	
+	private CheckBox chBox_X;
+	private CheckBox chBox_Simple;
+	private CheckBox chBox_Medium; 
+	private CheckBox chBox_Hard;
+	
 	private LinearLayout container;
 	
 	private TextView text1;
@@ -135,10 +142,15 @@ public class MainActivity extends Activity {
         
         chBox_O = (CheckBox)findViewById(R.id.CheckBox_O);
         chBox_X = (CheckBox)findViewById(R.id.checkBox_X);
+        chBox_Simple = (CheckBox)findViewById(R.id.checkBox_Simple);
+        chBox_Medium = (CheckBox)findViewById(R.id.checkBox_Medium);
+        chBox_Hard = (CheckBox)findViewById(R.id.checkBox_Hard);
      
         text1 = (TextView)findViewById(R.id.textView1);    
 //        text2 = (TextView)findViewById(R.id.textView2);
+
         chooseX(null);
+        chooseSimple(null);
     	refresh(null); 
     }
     
@@ -199,6 +211,10 @@ public class MainActivity extends Activity {
     public void myClick(View v){    	
     	chBox_O.setEnabled(false);
     	chBox_X.setEnabled(false);
+    	chBox_Simple.setEnabled(false);
+    	chBox_Medium.setEnabled(false);
+    	chBox_Hard.setEnabled(false);
+    	
      
     	for (int a = 0; a < arrayButton.length; a++) {
     		if (arrayButton[a].getId() == v.getId()) {
@@ -222,31 +238,42 @@ public class MainActivity extends Activity {
     public void clickPhone() {
     	int numCell = 10;    	
     	
-    	numCell = getNumCellByRules1();		// First Rule;
-    	if (fixPhoneMove(numCell))
-			return;    	    	
-    	numCell = getNumCellByRules2();		// Second Rule;
-    	if (fixPhoneMove(numCell))
-			return;
-		
-		numCell = getNumCellByRulesZero3(); // First Rule by Zero;
-    	if (fixPhoneMove(numCell))
-			return;
+    	if (gameDificult == GameDificult.MEDIUM) {
+    		
+    		numCell = getNumCellByRules1();		// First Rule;
+        	if (fixPhoneMove(numCell))
+    			return;    	    	
+        	numCell = getNumCellByRules2();		// Second Rule;
+        	if (fixPhoneMove(numCell))
+    			return;
+    	}
+    	else if (gameDificult == GameDificult.HARD) {
+        	
+    		numCell = getNumCellByRules1();		// First Rule;
+        	if (fixPhoneMove(numCell))
+    			return;    	    	
+        	numCell = getNumCellByRules2();		// Second Rule;
+        	if (fixPhoneMove(numCell))
+    			return;
+    		
+    		numCell = getNumCellByRulesZero3(); // First Rule by Zero;
+        	if (fixPhoneMove(numCell))
+    			return;
+        	
+    		numCell = getNumCellByRulesZero4(); // Fourth Rule by Zero;
+        	if (fixPhoneMove(numCell))
+    			return;
+        	
+    		numCell = getNumCellByRulesZero5(); // Fourth Rule by Zero;
+        	if (fixPhoneMove(numCell))
+    			return;
+    	}
     	
-		numCell = getNumCellByRulesZero4(); // Fourth Rule by Zero;
-    	if (fixPhoneMove(numCell))
-			return;
     	
-		numCell = getNumCellByRulesZero5(); // Fourth Rule by Zero;
-    	if (fixPhoneMove(numCell))
-			return;
-    	
-    	for (int i = 0; i < 9; i++) {
-    		if (mass[i] == cellNotFilled) {
-    			fixPhoneMove(i);
-    			break;
-    		}
-    	}    
+
+    
+    	numCell = getAnyAnyCellNumber();
+    	fixPhoneMove(numCell);
     } 
     
     private boolean fixPhoneMove (int numCell) {
@@ -367,7 +394,23 @@ public class MainActivity extends Activity {
     
     
     
+
     
+    private int getAnyAnyCellNumber() {
+    	
+    	List<Integer> list =  new ArrayList< Integer>();
+    	for (int i = 0; i < mass.length; i++) {
+    		if (mass[i] == cellNotFilled)
+    			list.add(i);	    		
+    	}
+    	
+    	if (list.size() > 0) {
+	    	Random r = new Random();
+	    	int num = r.nextInt(list.size());
+	    	return list.get(num);
+    	}
+    	return 10;
+    }
     
     private int getAnyCellNumber(boolean corner) {
     	int [] angels = new int[4];
@@ -493,6 +536,10 @@ public class MainActivity extends Activity {
 
     	chBox_O.setEnabled(true); 
     	chBox_X.setEnabled(true);
+    	chBox_Simple.setEnabled(true); 
+    	chBox_Medium.setEnabled(true);
+    	chBox_Hard.setEnabled(true); 
+    	
 		
     	for (int i = 0; i < 9; i++) 
     		arrayButton[i].setClickable(false);
@@ -515,14 +562,18 @@ public class MainActivity extends Activity {
     	text1.setText("");
     	chBox_O.setEnabled(true);
     	chBox_X.setEnabled(true);
+    	chBox_O.setEnabled(true);
+    	chBox_X.setEnabled(true);
+    	chBox_O.setEnabled(true);
+    	
     	listHistoryStep.clear();
     	
     	for (int i = 0; i < 9; i++) {
     		arrayButton[i].setEnabled(true);
     		arrayButton[i].setClickable(true); 
     		arrayButton[i].setText("");
-//    		arrayButton[i].setWidth(160);
-//    		arrayButton[i].setHeight(160);
+    		arrayButton[i].setWidth(150);
+    		arrayButton[i].setHeight(150);
     		mass[i] = 2;
     	}    	
     }
@@ -536,5 +587,23 @@ public class MainActivity extends Activity {
     	chBox_O.setChecked(true);
     	chBox_X.setChecked(false);
     	setMySign(sign.O);
+    }
+    public void chooseSimple(View v) {
+    	chBox_Simple.setChecked(true);
+    	chBox_Medium.setChecked(false);
+    	chBox_Hard.setChecked(false);
+    	gameDificult = GameDificult.SIMPLE;
+    }
+    public void chooseMedium(View v) {
+    	chBox_Simple.setChecked(false);
+    	chBox_Medium.setChecked(true);
+    	chBox_Hard.setChecked(false);
+    	gameDificult = GameDificult.MEDIUM;
+    }
+    public void chooseHard(View v) {
+    	chBox_Simple.setChecked(false);
+    	chBox_Medium.setChecked(false);
+    	chBox_Hard.setChecked(true);
+    	gameDificult = GameDificult.HARD;
     }
 }
